@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+from __future__ import print_function
 
 import os
 import argparse
@@ -36,9 +36,10 @@ def randomly_select(it, dist_fun):
     lst = list(it)
     n = len(lst)
     for i,el in enumerate(lst):
-        rng = (float(i)/n, float(i+1)/n)
-        fval = map(dist_fun,rng)
-        p = (fval[1]-fval[0])*(rng[1]-rng[0])
+        #rng = (float(i)/n, float(i+1)/n)
+        #fval = map(dist_fun,rng)
+        p = dist_fun(float(n-i)/(n+1)) #(fval[1]-fval[0])*(rng[1]-rng[0])
+        print("p={},el={}".format(p,el))
         if p>=random.random():
             yield el
             
@@ -47,7 +48,7 @@ def list_directories(d):
                         if os.path.isdir(os.path.join(d,o))]
             
 def random_select_files(from_dr,to_dr, op=copy, dist_fun=lambda x:x**9):
-    for src in randomly_select(list_directories(from_dr),dist_fun):
+    for src in randomly_select(sorted(list_directories(from_dr)),dist_fun):
         op(src,to_dr)
     
 
