@@ -1,0 +1,21 @@
+  303  source activate ithaka
+  307  ithaka-build.py -d db library bacteria
+  309  cd db/
+  311  mv library/ library.all
+  321  ls library/Bacteria/ -alh
+  322  ../scripts/random_select_folders.py -i library.all/Bacteria/ -o library/Bacteria/ -m -p 9
+  323  ls -1 library/Bacteria/ | wc -l
+  324  du -h library | tail
+       cd ..
+  346  ithaka-build.py -d db/ idtree
+  347  cat ../ithaka/runme.sh 
+  348  ithaka-build.py -t 8 -d db/ sizereport -s '#########################' -z 26,27,28
+  349  cat db/workdir/blooms_sizeest/size_estimation_report.txt 
+  351  ithaka-build.py -t 8 -d db/ binarization -a 67108864 && ithaka-build.py -t 8 -d db/ buildindex  -m 21G -k 16 -s '#########################'
+  352  du -h db/workdir/index_h16_s#########################/
+  368  ../ithaka/ulysses stats db/workdir/index_h16_s#########################/_ROOT__a4294967296_h16_s#########################_r0.bf 
+  370  grep _ROOT_ -A 3 db/workdir/id_tree_bin.newick | less
+  380  grep "Creating index\|Saving" ../ithaka/ithaka.log  
+  385  ithaka-build.py -d db jellyfishcount -s '#########################'
+  391  jellyfish dump db/workdir/blooms_unionall/UNION_ALL_s#########################.jellyfish > reads/all_reads.fa
+  395  history > commands.history
