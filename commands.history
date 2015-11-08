@@ -18,4 +18,8 @@
   380  grep "Creating index\|Saving" ../ithaka/ithaka.log  
   385  ithaka-build.py -d db jellyfishcount -s '#########################'
   391  jellyfish dump db/workdir/blooms_unionall/UNION_ALL_s#########################.jellyfish > reads/all_reads.fa
-  395  history > commands.history
+  cd reads
+  ./split_into_parts2.sh
+  cd ../
+  scripts/run_ithaka_on_parts.sh
+
