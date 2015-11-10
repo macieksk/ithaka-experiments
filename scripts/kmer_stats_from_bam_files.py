@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-#!/usr/bin/python -OO -u
+#!/usr/bin/python22 -OO -u
 from __future__ import print_function
 
 import os, sys, inspect
@@ -33,22 +33,21 @@ parser.add_argument('bam_file', nargs='+',type=validate_file,
         
 class ParseBAM(object):
         
-    def __init__(self, newick, bam_file):
+    def __init__(self, newick):
         print("Opening taxonomy tree {}".format(newick),file=sys.stderr)
         self.tree = trf.read_newick(newick,format=10)   
         
-        self.prepare_tree_dict(self.tree)
-        self.bam_file = bam_file
+        self.prepare_tree_dict()
         
         self.rank_counts = defaultdict(lambda:[0]*1000)
         self.genome_counts = [0]*1000
         
         self._file=None
             
-    def prepare_tree_dict(self,tree):
+    def prepare_tree_dict(self):
         self.name_to_rank={}
         self.genomes=set()
-        for i,node in enumerate(tree.get_descendants()):
+        for i,node in enumerate(self.tree.get_descendants()+[self.tree]):
             if "rank" in node.features:
                 self.name_to_rank[node.name]=node.rank
             if "fastapath" in node.features:
@@ -85,7 +84,8 @@ class ParseBAM(object):
         rank_counter=Counter()
         gen_cnt = 0
         for si in seqids:
-            rank_counter[self.name_to_rank[si]]+=1
+	    try: rank_counter[self.name_to_rank[si]]+=1
+	    except KeyError: pass
             if si in self.genomes:
                 gen_cnt+=1
                 
@@ -106,11 +106,11 @@ class ParseBAM(object):
         for rank,a in self.rank_counts.iteritems():
             for i,c in enumerate(self.cutoff_array(a)):
                 if i>0:
-                    print("{} {} {}\n".format(rank,i,c))
+                    print("{} {} {}".format(rank,i,c))
         rank = "genome"
-        for i,c in enumerate(self.genome_counts):
+        for i,c in enumerate(self.cutoff_array(self.genome_counts)):
             if i>0:
-                print("{} {} {}\n".format(rank,i,c))
+                print("{} {} {}".format(rank,i,c))
         
 
 if __name__ == "__main__":    
@@ -121,12 +121,18 @@ if __name__ == "__main__":
             curr_rec = None        
             rec = pbam.readline()
             curr_rec = rec[0]
-            while rec is not None:            
+            seqids=[]
+            i = 0
+            while rec is not None:
+                i+=1
+                if i%100000==0:
+                    print("Processed {} records".format(i),file=sys.stderr)
+                    #break
                 if rec[0]!=curr_rec:
                     curr_rec=rec[0]
                     pbam.register_kmer_stats(seqids)
                     seqids=[]
-                seqids.append(rec[2])            
+		seqids.append(rec[2])            
                 rec = pbam.readline()
             
         pbam.output_stats()
