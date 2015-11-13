@@ -26,5 +26,5 @@ prefix=`basename $last`
 
 #First just create the right ammount of fifos
 echo "Running Ithaka in parallel..."
-zcat -f $last | parallel --pipe --fifo --recstart '>' --block $block -P 1 ithaka-query.py $array {} 
+zcat -f $last | parallel -u --pipe --fifo --recstart '>' --block $block -P 1 ithaka-query.py $array {} 
 
