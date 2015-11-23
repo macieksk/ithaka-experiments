@@ -1,0 +1,15 @@
+MiSeq
+real    10m34.955s
+user    15m34.320s
+sys     8m4.470s
+
+SRR0619..
+real    9m14.548s
+user    21m20.150s
+sys     8m5.280s
+
+10000000
+real    20m16.028s
+user    179m1.670s
+sys     41m21.210s
+
