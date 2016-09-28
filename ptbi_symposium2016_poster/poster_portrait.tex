@@ -9,6 +9,7 @@
 \usepackage{rotating}
 \usepackage{bm}
 \usepackage{url}
+\usepackage{enumitem}
 
 
 \usepackage{scalefnt}
@@ -178,6 +179,7 @@
     \newcommand{\colouredcircle}{%
       \tikz{\useasboundingbox (-0.2em,-0.32em) rectangle(0.2em,0.32em); \draw[draw=black,fill=lightblue,line width=0.03em] (0,0) circle(0.18em);}}
 
+      \scalefont{0.9}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \headerbox{Metagenomics \& NGS}{name=problem,column=0,row=0}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -248,7 +250,7 @@ Menzel,~P, Ng~Kim~Lee, Krogh~A
 \newblock Higher classification sensitivity of short metagenomic reads with CLARK-S
 \newblock bioRxiv 053462; doi: http://dx.doi.org/10.1101/053462
 
-\bibitem{sseed} Břinda,~K,Sykulski~M, Kucherov~G.  %[5]
+\bibitem{sseed} B{\v r}inda,~K,Sykulski~M, Kucherov~G.  %[5]
 \newblock Spaced seeds improve k-mer-based metagenomic classification.
 \newblock Bioinformatics 31.22 (2015): 3584-3592.
 
@@ -257,7 +259,9 @@ Menzel,~P, Ng~Kim~Lee, Krogh~A
 \newblock Algorithms for Molecular Biology. 2016;11: 3.      
             
       \end{thebibliography}
-
+ 
+ \vspace{-1.5em}
+ 
  \hspace{-2.0em}
   \begin{minipage}{\textwidth}
   \begin{minipage}{0.80\linewidth}
@@ -292,18 +296,24 @@ Menzel,~P, Ng~Kim~Lee, Krogh~A
 	    %{images/seed_expl-crop.pdf}
 	    \end{center}}
 \vspace{-0.8em}
-A seed acts as a mask for comparing short oligonucleotides.
-The number of $\textbf{\#}$'s in a seed, called {\em weight},
-defines the number k of matching nucleotides. 
-In the above example k = 4, seed span = 6,
-and the matching (spaced) k-mer is ${\bf ACTC}$ signifying a {\bf hit}.
+% A seed acts as a mask for comparing short oligonucleotides.
+% The number of $\textbf{\#}$'s in a seed, called {\em weight},
+% defines the number k of matching nucleotides. 
+% In the above example k = 4, seed span = 6,
+% and the matching (spaced) k-mer is ${\bf ACTC}$ signifying a {\bf hit}.
 
 Previously, we demonstrated that spaced seeds allow for a better
    classification of NGS reads coming from a genome $G$ between two
   other genomes $G_1$ and $G_2$ of the same genus.\cite{sseed}
-% A {\bf coverage} is a number of aligned pairs covered 
-% by $\textbf{\#}$ from a spaced seed matches while sliding over an alignment 
-% (=4 above).
+\\  
+ {\bf Coverage} is a number of aligned pairs covered 
+ by $\textbf{\#}$ from a spaced seed matches while sliding over an alignment 
+ (=4 above). 
+ \\
+{\bf Coverage pattern} is the pattern of matches (hits) of a seed over an alignment.
+\\
+{\bf The NP-HARD PROBLEM:}  Assume a read $f$ comes from genome $g$.
+For a given seed, computing $e_{f,g}$ -- a minimal number of errors(mutations) in fragment $f$, given the {\em coverage pattern} of the read $f$ with hits to $g$ is NP-hard. In other words, answering what is the minimal number of errors in a fragment $f$ which guarantees a certain coverage pattern (eg. found by Ithaka query) turns out to be an instance of 0-1 integer programming (an NP-complete problem). We programmed our solution using {\em coin-Cbc} integer programming library. In practice, it works fast on reads with high coverage, and slows down significantly on reads with low coverage (then heuristic is preferred).
    \vspace{0.3em}
   }
 
@@ -386,32 +396,42 @@ Previously, we demonstrated that spaced seeds allow for a better
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{Scores on real genomes}{name=results,column=1,span=1,row=0}{
+\headerbox{2outof3 Index}{name=results,column=1,span=1,row=0}{
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%For a given genome $G$
-We generated a set of {\sc Illumina}-like single-end reads:
-we've selected random substrings of 
-{\em M.tuberculosis} genome
-%$G$
-of length $L=100$ and
-introduced $k$ mismatch errors, with $k$ random between $1$ and $20$.
-For each read, we computed: {\bf number of hits} and {\bf coverage}
-to the genome under a given seed.
-%This experiment has been applied to {\em M. tuberculosis} genome, 
-A typical plot error vs score (seed weight 20).
-\noindent\begin{tabular}{@{\hspace{0.0em}}c@{\hspace{0.0em}}c@{\hspace{0.0em}}}
-Hits & Coverage\\
-\includegraphics[width=0.49\linewidth]{images/3.3/Myco-w20-cont-hit-scatter-crop.pdf} &
-\includegraphics[width=0.49\linewidth]{images/3.3/Myco-w20-cont-cover-scatter-crop.pdf} \\%[2em]
-\includegraphics[width=0.49\linewidth]{images/3.3/Myco-w20-spaced-hit-scatter-crop.pdf} &
-\includegraphics[width=0.49\linewidth]{images/3.3/Myco-w20-spaced-cover-scatter-crop.pdf} \\%[2em]
-%\begin{sideways}{\makebox[0.32\linewidth][c]{Flank of a giraffe}}\end{sideways} & 
-%\includegraphics[width=0.40\linewidth]{candidates_giraffes_flank_bg}&
-%\includegraphics[width=0.40\linewidth]{candidates_giraffes_flank_no_bg}\\
-\end{tabular}
-{\bf Spaced seeds}
-exhibit a better correlation between errors and score, while
-{\em contiguous seeds} plots are more blurred.
+Consider a binary tree with a 
+  
+  
+{\bf Ithaka 2outof3 index} is comparable in size to Krakens: 67GB for bacterial and archaeal, but
+\vspace{-0.7em}
+\begin{itemize}[leftmargin=*]
+\setlength\itemsep{-0.2em}
+\item it requires 24 GB to be build (although it builds much faster when more is available) (Kraken requires 120GB to build the db)
+\item it requires <24 GB to run
+\item it contains complete taxonomic information about k-mers, not only LCAs  
+\end{itemize}
+% We generated a set of {\sc Illumina}-like single-end reads:
+% we've selected random substrings of 
+% {\em M.tuberculosis} genome
+% %$G$
+% of length $L=100$ and
+% introduced $k$ mismatch errors, with $k$ random between $1$ and $20$.
+% For each read, we computed: {\bf number of hits} and {\bf coverage}
+% to the genome under a given seed.
+% %This experiment has been applied to {\em M. tuberculosis} genome, 
+% A typical plot error vs score (seed weight 20).
+% \noindent\begin{tabular}{@{\hspace{0.0em}}c@{\hspace{0.0em}}c@{\hspace{0.0em}}}
+% Hits & Coverage\\
+% \includegraphics[width=0.49\linewidth]{images/3.3/Myco-w20-cont-hit-scatter-crop.pdf} &
+% \includegraphics[width=0.49\linewidth]{images/3.3/Myco-w20-cont-cover-scatter-crop.pdf} \\%[2em]
+% \includegraphics[width=0.49\linewidth]{images/3.3/Myco-w20-spaced-hit-scatter-crop.pdf} &
+% \includegraphics[width=0.49\linewidth]{images/3.3/Myco-w20-spaced-cover-scatter-crop.pdf} \\%[2em]
+% %\begin{sideways}{\makebox[0.32\linewidth][c]{Flank of a giraffe}}\end{sideways} & 
+% %\includegraphics[width=0.40\linewidth]{candidates_giraffes_flank_bg}&
+% %\includegraphics[width=0.40\linewidth]{candidates_giraffes_flank_no_bg}\\
+% \end{tabular}
+% {\bf Spaced seeds}
+% exhibit a better correlation between errors and score, while
+% {\em contiguous seeds} plots are more blurred.
 % \vspace{-1.0em}
 %      \begin{multicols}{1}
 %      Hit number (left plots) and coverage (right plots) depending
@@ -432,7 +452,7 @@ exhibit a better correlation between errors and score, while
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{Ithaka performance}{name=speed,column=1,span=2,below=results,above=bottom}{ %,bottomaligned=background model}{
+\headerbox{Ithaka Toolchain and Performance}{name=speed,column=1,span=2,below=results,above=bottom}{ %,bottomaligned=background model}{
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % We modified  {\sc
@@ -442,27 +462,65 @@ exhibit a better correlation between errors and score, while
 % For a set of genomes, a database of spaced $k$-mers matching a user-selected seed is constructed. 
 %
 \hspace{-1em}
-\begin{minipage}{0.47\textwidth}
-Performances of classification of {\sc Ithaka} (with spaced seeds), and original {\sc Kraken}, 
-were computed on simulated metagenomes (primarily described and used in \cite{kraken}):    
+\begin{minipage}{0.46\textwidth}
+{\bf Ithaka tool chain:}
+\vspace{-0.7em}
+\begin{itemize}[leftmargin=*]
+\setlength\itemsep{-0.2em}
+\item ithaka-build.py -- indexing fasta files, taxonomic tree binarization, creating of {\bf 2outof3 index}.
+% I think most things are done there, and the process cannot be easily improved, and since this is a rare operation, there is no urgent need to. Building full Bacteria index + HMP database (90GB result, 20GB largest BF) takes approximately 36 hours on 24 cores. One problem here is that during indexing, sequences with gi numbers which do not map to taxonomic id's are simply omitted, and this happens hundreds of times or Bacteria db.
+\item ithaka-query.py -- querying the index with a set of reads. 
+%To be competitive still needs improvements described below, it's slow.
+\item ithaka-assigment.py -- 2 steps:
+\vspace{-1em}
+\begin{itemize}[leftmargin=0.5em]
+\setlength\itemsep{-0.2em}
+\item samtoerr -- computing error counts from coverage (NP-hard), 
+% and this is now slow for reads with low coverage (40min for >2mln alignments from 50K reads sample) This needs either rewriting to some greedy heuristic, some prefiltering, or both.
+\item Expectation Maximization(EM) -- taxonomic abundance estimation, and read assignment (blazing fast: 1000 iterations of 50K reads (>2 million alignments) in <10 seconds)
+\end{itemize}
+\end{itemize}
+\vspace{-0.7em}
+%
+% This is mostly done, it's blazing fast  Here possible improvements are: heuristic computation of P(f|g) which takes hitcounts into account (first draft done), heuristic prior to \alpha_g which reduces assignments to genomes with very low representation (I experimented with this), better setup of parameters like seq_error_prob, earth_kmer_abundance. However, I have a following observations:
+% -- whether error_probability coefficient is 0.01 or 0.001  doesn't seem to change the results much, if the earth_kmer_abundance coefficient is large enough.
+% -- lowering the earth_kmer_abundance coefficient (i.e. increasing the probability of assigning a read as unknown) can increase precision, at the cost of sensitivity. (at the family level Ithaka reaches 0.994 precision with 0.78 sensitivity)
+%
+{\bf Possible improvements to ithaka-query.py}:
+In development implementation (partially in C++) is still slow: ~700 reads (of 220-250len) per second. This can be easily sped up 4x by moving totaly to C++.
+% which recomputes hashes from reads for every Bloom filter tested. According to below gprof-iler output, this could be relatively easily sped up by a factor of ~4x.
+%   %   cumulative   self              self     total           
+%  time   seconds   seconds    calls  us/call  us/call  name    
+%  47.37      0.27     0.27  1246416     0.22     0.22  compress_kmer
+%  24.56      0.41     0.14  1246416     0.11     0.43  Bloom::query
+%  19.30      0.52     0.11  9970024     0.01     0.01  MurmurHash3_x64_128
+%   3.51      0.54     0.02  1246253     0.02     0.10  compute_hashes
+Further speed up is not possible without cache optimization because 25\% of time is spend on querying Bloom filter bitmap: it's the time to access memory with cache misses, the access is random. Effective implementation using {\em "cache blocking"} is possible (10x, total 40x speedup).
+% 
+% This could be sped up by sorting the all the queried bits numbers, and querying them in order. The trade off would be the sorting time (but this could be done once at the beginning for all reads), and then assembling the responses back into kmer queries, which would again meet with the problem of cache misses (if there are many reads/kmers). This could be mitigated using "cache blocking".
+% 
+% The competition operates at the speeds of 20x to 80x faster than current Ithaka's 700rps. (see chart below from Kajiu paper) I suspect that cache optimization can give a speed up of a factor ~10x or more. The total speed up can be >40x, but it requires some serious programming work.
+
+
+{\bf Performances} of classification of {\sc seed-Kraken}\cite{sseed} and {\sc Ithaka} (with spaced seeds), and original {\sc Kraken}, 
+were computed on simulated metagenomes (primarily used in \cite{kraken}):    
     MiSeq (10 bacterial genomes, average error rate), 
-    HiSeq, %(10 bacterial genomes, low error rate), 
-    %simBA-5 (607 bacterial genera, high error rate).
-    and on 50K subsample of Human Microbiome Project (HMP) Tongue Dorsum wgs sample.
-    Charted are genus precision (positive predictive value) against genus sensitivity (rate of correct assignments). Varying are {\em k-mer length}, and its spaced seed equivalent {\em seed weight}, while the {\em seed span} (not indicated) varies from 31 to 40.\\
+    Charted are genus precision (positive predictive value) against genus sensitivity (rate of correct assignments). Varying are {\em k-mer length}, and its spaced seed equivalent {\em seed weight}, while the {\em seed span} (not indicated) varies from 31 to 40.
+Ithaka marks {\em black}: only leaves(genomes) fed to EM; {\em blue}: also inner nodes fed to EM (precision at cost of sensitivity).
+    
 %\ \\
 %\vspace{0.3em}
 %
-{\sc seed-Kraken} outperforms original {\sc Kraken} in sensitivity/precision trade-off (ROC curve characteristics) at the classification levels of genus, and family.
+% {\sc seed-Kraken} outperforms original {\sc Kraken} in sensitivity/precision trade-off (ROC curve characteristics) at the classification levels of genus, and family.
 %
-
+%
 \end{minipage} 
-\hspace{-2em}
-\begin{minipage}{0.6\textwidth}
+\hspace{-3em}
+\begin{minipage}{0.65\textwidth}
 \centerline{
 \noindent\begin{tabular}{@{\hspace{0.0em}}c@{\hspace{0.0em}}}
 %\includegraphics[width=\linewidth,keepaspectratio]{images/seed-kraken_plt1_bioinfo-crop.pdf}\\
-\includegraphics[height=0.39\textheight,keepaspectratio]{images/ithaka_first_results_miseq_fixed.png}\\
+\includegraphics[height=0.41\textheight,keepaspectratio]{images/ithaka_first_results_miseq_fixed.png}\\
 \end{tabular}
 }
 \end{minipage}
@@ -473,26 +531,49 @@ were computed on simulated metagenomes (primarily described and used in \cite{kr
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{Simulated Alignments}{name=background_model,column=2,row=0,span=1,above=speed}{%{name=background model,column=1,below=results,above=bottom}{
+  \headerbox{EM abundance estimation and assignment}{name=background_model,column=2,row=0,span=1,above=speed}{%{name=background model,column=1,below=results,above=bottom}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+EM solves two problems at once: abundance estimation, and assignment.
+EM maximizes likelihood as a function of two types of variables:
+\vspace{-1em}
+\begin{enumerate}[leftmargin=*]
+\setlength\itemsep{-0.2em}
+\item abundances  $\alpha_g$  such that  $\sum_{g\in G} \alpha_g =1$  correspond to proportion of reads from the whole sample which belong to genome $g$. Here $G$ is the set of all genomes plus $U$ category of unknown/unclassified reads.
+\item categorical assignment indicator 0-1 variables $y_{f,g}$​ which if equal to 1 mean that read $f$ comes from a genome(or category) $g$. Matrix of these variables is sparse – most of them are 0 – since we only consider  $y_{f,g}$ non zero if there are some hits from genome $g$ in fragment $f$.  
+$\sum_{g \in G} y_{f,g} = 1$
+\end{enumerate}
+\vspace{-0.5em}
+The {\bf total likelihood} is proportional to
+\vspace{-0.5em}
+%\begin{align}
+$$\left(\prod_{f \in F} \prod_{g \in G} P(f\|g)^{y_{f,g}} \alpha_{g}^{y_{f,g}} \right) \times P_{prior}(\alpha)$$
+%\end{align}
+%\vspace{-0.5em}
+$P_{prior}(\alpha)$ is the conjugate prior distribution to categorical distribution, which is Dirichlet distribution.\\
+{\bf Expectation step} goes over $y_{f,g}$​ variables (with $\alpha_g$ set)\\
+{\bf Maximization step} goes over  $\alpha_g$  variables (with $y_{f,g}$​ set).
 
-An accurate mapping of a read to a corresponding clade
-requires estimating its distances to each of the genomes.
+$P(f\|g)$ is given, it's probability of obtaining fragment $f$ assuming it comes from genome $g$, it depends on 
+$\frac{1}{\text{kmer\_richness\_of\_g}}$.
+One proposal for it depends also on $e_{f,g}$ -- a minimal number of errors/mutations in fragment $f$, given the coverage pattern (see NP-HARD, left panel).
 
-% With this motivation, we studied how
-% well the measured counts correlate with the alignment score. 
-
-For a fixed minimal identity rate $p_{id}$, 
-we randomly sampled gapless alignments of length
-$100$ with identity rate from interval $[p_{id}..1]$, and
-collected pairs (number of mismatches, score), 
-where 'score' stands for either {\bf number of hits}, or {\bf coverage} of a given seed. For these data, we plot Spearman's rank correlation.
-\vspace{0.5em}
-
-\noindent\begin{tabular}{@{\hspace{0.0em}}c@{\hspace{0.0em}}}
-\includegraphics[width=\columnwidth]{images/3.2/rank-cor-seed-weight-20-crop.pdf} \\
-\end{tabular}
-
+% An accurate mapping of a read to a corresponding clade
+% requires estimating its distances to each of the genomes.
+% 
+% % With this motivation, we studied how
+% % well the measured counts correlate with the alignment score. 
+% 
+% For a fixed minimal identity rate $p_{id}$, 
+% we randomly sampled gapless alignments of length
+% $100$ with identity rate from interval $[p_{id}..1]$, and
+% collected pairs (number of mismatches, score), 
+% where 'score' stands for either {\bf number of hits}, or {\bf coverage} of a given seed. For these data, we plot Spearman's rank correlation.
+% \vspace{0.5em}
+% 
+% \noindent\begin{tabular}{@{\hspace{0.0em}}c@{\hspace{0.0em}}}
+% \includegraphics[width=\columnwidth]{images/3.2/rank-cor-seed-weight-20-crop.pdf} \\
+% \end{tabular}
+% 
 % 
 % A typical result, corresponding to seed weight 22, is shown in Figure~\ref{spearman}. 
 % It implies that when the identity rate of alignments takes a large
@@ -517,16 +598,15 @@ where 'score' stands for either {\bf number of hits}, or {\bf coverage} of a giv
 % sharply concentrated at certain values, and therefore to be less well
 % correlated with the number of mismatches. 
 % 
- In conclusion, spaced seeds provide a much better
- distance estimator for alignments whose score ranges over a large interval. For
- very high-scoring alignments (${>95\%}$ of identity), the hit number of
- contiguous seed becomes a better estimator. 
+%  In conclusion, spaced seeds provide a much better
+%  distance estimator for alignments whose score ranges over a large interval. For
+%  very high-scoring alignments (${>95\%}$ of identity), the hit number of
+%  contiguous seed becomes a better estimator. 
 %The superiority of
 %hit-number over coverage for high-scoring alignments has also
 % been reported in \citep{pmid25393923}. Along with Spearman's
 % correlation, we also made an analysis of mutual information computed
-% on the same data (data not shown) that confirmed the above conclusions. 
- 
+% on the same data (data not shown) that confirmed the above conclusions.  
  \vspace{0.3em}
   }
 
