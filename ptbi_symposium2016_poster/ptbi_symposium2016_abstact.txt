@@ -1,0 +1,27 @@
+Ithaka: a taxonomic classifier based on Bloom filters, and spaced seeds.
+
+Metagenomics is a powerful approach to study genetic material contained
+in environmental samples, which is revolutionized by high-throughput sequencing
+technologies. Taxonomic classification of metagenomics data sets is a common step in analysis, a step for which computational cost becomes prohibitive with the growth of metagenomic datasets.
+
+Approaches using sequence alignment algorithms, often based on the Burrows-Wheeler transform, such as Kaiju[1], Centrifuge[2], compete successfully with k-mer based alignment-free comparison methods such as Kraken[3], Clark[4]. Improvements to k-mer based approaches include: extending contiguous k-mers with spaced seeds [5][6], using Bloom filters as an underlying data structure for storing k-mers.[7]
+
+Here we report on our algorithm "Ithaka", an approach in constructing a k-mer based taxonomic classifier, which incorporates spaced seeds, and uses a memory frugal index constructed as a tree of Bloom filters with minimal redundancy (2outof3 index). A read (fragment) query to the index produces k-mer coverages for all genomes in the database, which is an advantage over the lowest common ancestor approach in Kraken. 
+The index size is dependent on the chosen false positive ratio, and with fp=0.004 the size is 34GB for a database of 2787 bacteria genomes, and the index requires <16 GB to run. The resulting spaced seed coverage of a read is later used to estimate a minimal number of errors/mutations in a read by solving an integer programming problem. This number is then used by Expectation Maximization algorithm to estimate taxonomic abundancies and taxonomic assignment of each read. Ithaka shows higher sensitivity at a comparable precision at the genus and family ranks, when compared with Kraken algorithm on HiSeq dataset.
+
+
+[1] Menzel Peter, Ng Kim Lee, Krogh Anders: "Fast and sensitive taxonomic classification for metagenomics with Kaiju", Nat Commun 7, Nature Publishing Group, apr 2016, 
+
+[2] Daehwan Kim, Li Song, Florian P Breitwieser, Steven Salzberg: "Centrifuge: rapid and sensitive classification of metagenomic sequences"
+bioRxiv 054965; doi: http://dx.doi.org/10.1101/054965
+
+[3] Wood DE, Salzberg SL: "Kraken: ultrafast metagenomic sequence classification using exact alignments." Genome Biology 2014, 15:R46.
+
+[4] Ounit, R., Wanamaker, S., Close, T. J., and Lonardi, S. (2015). "Clark: fast and accurate classification of metagenomic and genomic sequences using discriminative k-mers." BMC genomics, 16(1), 236. 
+
+[5] Břinda, Karel, Maciej Sykulski, and Gregory Kucherov. "Spaced seeds improve k-mer-based metagenomic classification." Bioinformatics 31.22 (2015): 3584-3592.
+
+[6] Rachid Ounit, Stefano Lonardi, "Higher classification sensitivity of short metagenomic reads with CLARK-S" 
+bioRxiv 053462; doi: http://dx.doi.org/10.1101/053462
+
+[7] Holley G, Wittler R, Stoye J. Bloom Filter Trie: an alignment-free and reference-free data structure for pan-genome storage. Algorithms for Molecular Biology. 2016;11: 3.
