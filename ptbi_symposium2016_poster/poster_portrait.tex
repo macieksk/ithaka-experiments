@@ -141,22 +141,26 @@
   }
   % Eye Catcher
   {%\includegraphics[height=1.0em]{images/CodeCogsEqn.pdf}
+  \includegraphics[height=8.5em]{images/zimt_logo_square_RGB-1024x738.png}
   } 
   % Title
   {\begingroup
-    \scalefont{1.2}
-      \bf\textsc{Spaced Seeds Improve\\
-      \vspace{0.2em}
-	      Metagenomic Classification}
+    \scalefont{1.0}
+      \bf\textsc{Ithaka: a taxonomic classifier \\
+      {\vspace{-0.2em} \scalefont{0.7} based on \\} 
+      \vspace{0.0em}	
+            Bloom filters, and spaced seeds}
    \endgroup
-   \vspace{0.2em}}
+   \vspace{0.06em}}
   % Authors
-  {\textsc{Karel B{\v r}inda, Maciej Sykulski, Gregory Kucherov}\\
-   {\small karel.brinda@univ-mlv.fr, macieksk@gmail.com, gregory.kucherov@univ-mlv.fr}}
+  {\textsc{Maciej Sykulski, Karel B{\v r}inda, Gregory Kucherov}\\
+   {\small macieksk@gmail.com, karel.brinda@univ-mlv.fr, gregory.kucherov@univ-mlv.fr}
+   }   
       %\{ Brian.Amberg and Thomas.Vetter \}@unibas.ch}}
   % University logo
   {% The makebox allows the title to flow into the logo, this is a hack because of the L shaped logo.
-    \includegraphics[height=8.0em]{images/UPEM_LOGO_SIGNALETIQUE.pdf}
+    
+    \includegraphics[height=8.0em]{images/UPEM_LOGO_SIGNALETIQUE_SMALL.pdf}
   }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -177,28 +181,34 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \headerbox{Metagenomics \& NGS}{name=problem,column=0,row=0}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   
-    {\bf Metagenomics} is a powerful approach to study genetic
-content of environmental samples, which has been strongly promoted
-by NGS technologies.
-%
 
-For large-scale metagenomic projects
-%, alignment-based approaches appear unfeasible, and 
-alignment-free methods are used.
-%aligning multimillion read sets against thousands
-%of genomes remains computationally difficult even with optimized
-%tools. 
-%
-To cope with massive data,
-%involved in modern metagenomic projects, 
-recent tools 
-%(Ames et al., 2013; Wood and
-%Salzberg, 2014) 
-(LMAT \cite{lmat}, Kraken \cite{kraken})
-rely on the analysis of {\bf k-mers} (words of fixed size)
-shared between the
-{\bf read} to be classified, and {\bf reference genomes}.
+Metagenomics is a powerful approach to study genetic material contained
+in environmental samples, which is revolutionized by high-throughput sequencing
+technologies. Taxonomic classification of metagenomics data sets is a common step in analysis, a step for which computational cost becomes prohibitive with the growth of metagenomic datasets.
+
+Approaches using sequence alignment algorithms, often based on the Burrows-Wheeler transform, such as Kaiju\cite{kaiju}, Centrifuge\cite{centrifuge}, compete successfully with k-mer based alignment-free comparison methods such as Kraken\cite{kraken}, Clark\cite{clark}. Improvements to k-mer based approaches include: extending contiguous k-mers with spaced seeds \cite{sseed}\cite{clark}, using Bloom filters as an underlying data structure for storing k-mers.\cite{trie}
+
+%     {\bf Metagenomics} is a powerful approach to study genetic
+% content of environmental samples, which has been strongly promoted
+% by NGS technologies.
+% %
+% 
+% For large-scale metagenomic projects
+% %, alignment-based approaches appear unfeasible, and 
+% alignment-free methods are used.
+% %aligning multimillion read sets against thousands
+% %of genomes remains computationally difficult even with optimized
+% %tools. 
+% %
+% To cope with massive data,
+% %involved in modern metagenomic projects, 
+% recent tools 
+% %(Ames et al., 2013; Wood and
+% %Salzberg, 2014) 
+% (LMAT \cite{lmat}, Kraken \cite{kraken})
+% rely on the analysis of {\bf k-mers} (words of fixed size)
+% shared between the
+% {\bf read} to be classified, and {\bf reference genomes}.
 
    \vspace{0.3em}
  }
@@ -220,17 +230,32 @@ shared between the
 %       distances. 
 %       \newblock In Journal of Computational Biology 21, 2014.
 %       %      
-      \bibitem{lmat}
-      Ames,~Sasha~K., et al. 
-      \newblock Scalable metagenomic taxonomy classification using a reference genome database.
-      \newblock In Bioinformatics 29.18 (2013): 2253-2260.      
-      \bibitem{kraken}
+\bibitem{kaiju} %[1]
+Menzel,~P, Ng~Kim~Lee, Krogh~A
+\newblock Fast and sensitive taxonomic classification for metagenomics with Kaiju.
+\newblock Nat Commun 7, Nature Publishing Group, apr 2016, 
+      
+\bibitem{centrifuge} Kim~D, Song~L, Breitwieser~F~P, Salzberg~S %[2]
+\newblock Centrifuge: rapid and sensitive classification of metagenomic sequences
+\newblock Genome 1.2: 2.
+
+\bibitem{kraken} %[3]
       Wood,~D.~E. and Salzberg,~S.~L.
       \newblock Kraken: ultrafast metagenomic sequence classification using exact alignments. 
       \newblock In Genome Biol., 15(3), R46. (2014)
-      \bibitem{iedera} 
-      Seed design has been done with {\sc Iedera} software 
-      \newblock \url{http://bioinfo.lifl.fr/yass/iedera}
+
+\bibitem{clark} Ounit~R, Lonardi~S, %[4,6]
+\newblock Higher classification sensitivity of short metagenomic reads with CLARK-S
+\newblock bioRxiv 053462; doi: http://dx.doi.org/10.1101/053462
+
+\bibitem{sseed} Břinda,~K,Sykulski~M, Kucherov~G.  %[5]
+\newblock Spaced seeds improve k-mer-based metagenomic classification.
+\newblock Bioinformatics 31.22 (2015): 3584-3592.
+
+\bibitem{trie} Holley~G, Wittler~R, Stoye~J.  %[7]
+\newblock Bloom Filter Trie: an alignment-free and reference-free data structure for pan-genome storage. 
+\newblock Algorithms for Molecular Biology. 2016;11: 3.      
+            
       \end{thebibliography}
 
  \hspace{-2.0em}
@@ -238,14 +263,15 @@ shared between the
   \begin{minipage}{0.80\linewidth}
   %  \indent{}
   %The source code \\ and the manual \\ are available at   
-   {\smaller \url{http://seed-kraken.readthedocs.org} \\
-  \url{http://github.com/gregorykucherov/spaced-seeds-for-metagenomics}\\
-  \url{http://arxiv.org/abs/1502.06256}
+   {\smaller 
+  \url{https://github.com/gregorykucherov/ithaka}\\
+  \url{http://seed-kraken.readthedocs.org} 
+  %\url{http://arxiv.org/abs/1502.06256}
    }
   \end{minipage}\hfill%
   \begin{minipage}{0.20\linewidth}
   %\hfill\includegraphics[width=\linewidth]{images/qr-seed-kraken-rea-crop.pdf}
-  \hfill\includegraphics[width=\linewidth]{images/qr-github-com-crop.pdf}
+  \hfill\includegraphics[width=\linewidth]{images/qrcode-ithaka.png}
   \end{minipage}
   \end{minipage}
    \vspace{0.3em}
@@ -278,81 +304,81 @@ by $\textbf{\#}$ from a spaced seed matches while sliding over an alignment
    \vspace{0.3em}
   }
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{Contributions}{name=contribution,column=0,below=method, above=references}{
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\begin{itemize}
-$\bullet$\,We showed that spaced seeds can improve success
-  rate of binary classification of alignments into two categories, each
-  defined by a specific mismatch rate.
-  %Here the classification is done
-  %through ``querying'' an alignment using a seed as a mask and
-  %reporting whether the seed applies at a given position. 
-  For example,
-  in discriminating between alignments of length 100 with mismatch
-  rate $0.2$ and $0.3$, a spaced seed of weight 16 achieves 63\% of
-  success while a contiguous seed of the same weight achieves only
-  40\%. 
-
-$\bullet$\,We demonstrated that spaced seeds allow for a better
-  classification of NGS reads coming from a genome $G$ between two
-  other genomes $G_1$ and $G_2$ of the same genus. 
-  %Here reads are
-  %classified according to the phylogenetic distance
-  %between $G$ and $G_1$ and $G$ and $G_2$ respectively. We established that correct classification is obtained
-  %with seeds of weight 16 and more, while seeds of weight 14 are
-  %insufficient. 
-
-$\bullet$\,We analyzed how well different estimators (coverage/hit-number
-  combined with spaced/contiguous seed) correlate with the alignment
-  quality, also on real genomes. %(center panel).
-  %, by measuring Spearman's rank correlation
-  %coefficient and mutual information coefficient.
-    
-%$\bullet$\,We compare spaced and contiguous seeds through
-% large-scale metagenomics experiments (right panel).
-$\bullet$\,We demonstrated that spaced seeds can improve the sensitivity-selectivity trade-off in large-scale metagenomics experiments ({\sc seed-Kraken} panel).
-%
-%\noindent{\bf Results:}
-%     Within this general framework, we show that spaced
-% seeds provide a significant improvement of classification capacity as
-% opposed to traditional contiguous k-mers. We support this thesis
-% through a series a different computational experiments, including
-% simulations of large-scale metagenomic projects.
-   
-% %To study this, we implemented the
-% %following experimental setup. 
-% %
-% Using {\sc dwgsim} read simulator
-% %(\url{http://github.com/nh13/DWGSIM}), 
-% we generate single-end
-% {\sc Illumina}-like reads from genome $G$. 
-% %In all experiments, 
-% We assumed
-% 1\% of base mutations (substitutions only), and 2\% of sequencing
-% errors. 
-% %({\sc dwgsim} options \texttt{-e 0.02 -r 0.01 -R 0}). 
-% Given a seed  $k$-mers of $G_1$ and $G_2$ are indexed.
-% %to support existence queries only. 
-% For each read, all $k$-mers are
-% queried against $G_1$ and $G_2$ and corresponding counts $C_1$ and
-% $C_2$ are computed. If $C_1>C_2$ (resp. $C_1<C_2$), the read is classified to be closer
-% to $G_1$ (resp. $G_2$), otherwise a tie is reported. 
 % 
-% {\noindent
-% \scriptsize 
-% \input{table_04}
-% }  
-% \vspace{0.3em}
-% % \caption{\small 
-% Classification of {\em Bacillus thuringiensis} reads
-%   against {\em Bacillus anthracis} and {\em Bacillus cereus} genomes. Each entry contains a pair ``Fraction (in \%) of reads
-%   classified closer to {\em B.anthracis}\, /\,Fraction of reads
-%   classified closer to {\em B.cereus} ''.
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   \headerbox{Contributions}{name=contribution,column=0,below=method, above=references}{
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %\begin{itemize}
+% $\bullet$\,We showed that spaced seeds can improve success
+%   rate of binary classification of alignments into two categories, each
+%   defined by a specific mismatch rate.
+%   %Here the classification is done
+%   %through ``querying'' an alignment using a seed as a mask and
+%   %reporting whether the seed applies at a given position. 
+%   For example,
+%   in discriminating between alignments of length 100 with mismatch
+%   rate $0.2$ and $0.3$, a spaced seed of weight 16 achieves 63\% of
+%   success while a contiguous seed of the same weight achieves only
+%   40\%. 
+% 
+% $\bullet$\,We demonstrated that spaced seeds allow for a better
+%   classification of NGS reads coming from a genome $G$ between two
+%   other genomes $G_1$ and $G_2$ of the same genus. 
+%   %Here reads are
+%   %classified according to the phylogenetic distance
+%   %between $G$ and $G_1$ and $G$ and $G_2$ respectively. We established that correct classification is obtained
+%   %with seeds of weight 16 and more, while seeds of weight 14 are
+%   %insufficient. 
+% 
+% $\bullet$\,We analyzed how well different estimators (coverage/hit-number
+%   combined with spaced/contiguous seed) correlate with the alignment
+%   quality, also on real genomes. %(center panel).
+%   %, by measuring Spearman's rank correlation
+%   %coefficient and mutual information coefficient.
+%     
+% %$\bullet$\,We compare spaced and contiguous seeds through
+% % large-scale metagenomics experiments (right panel).
+% $\bullet$\,We demonstrated that spaced seeds can improve the sensitivity-selectivity trade-off in large-scale metagenomics experiments ({\sc seed-Kraken} panel).
 % %
-\vspace{0.3em}
-  }
+% %\noindent{\bf Results:}
+% %     Within this general framework, we show that spaced
+% % seeds provide a significant improvement of classification capacity as
+% % opposed to traditional contiguous k-mers. We support this thesis
+% % through a series a different computational experiments, including
+% % simulations of large-scale metagenomic projects.
+%    
+% % %To study this, we implemented the
+% % %following experimental setup. 
+% % %
+% % Using {\sc dwgsim} read simulator
+% % %(\url{http://github.com/nh13/DWGSIM}), 
+% % we generate single-end
+% % {\sc Illumina}-like reads from genome $G$. 
+% % %In all experiments, 
+% % We assumed
+% % 1\% of base mutations (substitutions only), and 2\% of sequencing
+% % errors. 
+% % %({\sc dwgsim} options \texttt{-e 0.02 -r 0.01 -R 0}). 
+% % Given a seed  $k$-mers of $G_1$ and $G_2$ are indexed.
+% % %to support existence queries only. 
+% % For each read, all $k$-mers are
+% % queried against $G_1$ and $G_2$ and corresponding counts $C_1$ and
+% % $C_2$ are computed. If $C_1>C_2$ (resp. $C_1<C_2$), the read is classified to be closer
+% % to $G_1$ (resp. $G_2$), otherwise a tie is reported. 
+% % 
+% % {\noindent
+% % \scriptsize 
+% % \input{table_04}
+% % }  
+% % \vspace{0.3em}
+% % % \caption{\small 
+% % Classification of {\em Bacillus thuringiensis} reads
+% %   against {\em Bacillus anthracis} and {\em Bacillus cereus} genomes. Each entry contains a pair ``Fraction (in \%) of reads
+% %   classified closer to {\em B.anthracis}\, /\,Fraction of reads
+% %   classified closer to {\em B.cereus} ''.
+% % %
+% \vspace{0.3em}
+%   }
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
