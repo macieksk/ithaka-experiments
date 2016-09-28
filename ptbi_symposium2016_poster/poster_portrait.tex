@@ -723,3 +723,150 @@ Maciek
 
 
 
+
+
+##########################################
+
+
+
+
+
+Hi Gregory, Hi Karel, Hi Kamil,
+
+I think it will be easier to publish Ithaka paper, if it comes together with an assignment method. Thus, I've been thinking about it recently. Here are some results.
+
+Generally I think about an EM algorithm which would solve two problems at once: abundance estimation, and assignment. This EM would maximize likelihood as a function of two types of variables:
+1) abundances  αg  such that  ∑g ∈ G αg =1  correspond to proportion of reads from the whole sample which belong to genome g. Here G is the set of all genomes plus U - categories of unknown/unclassified reads.
+2) categorical assignment indicator 0-1 variables yf,g​ which if equal to 1 mean that fragment (read) f comes from genome(category) g. Matrix of these variables is sparse – most of them are 0 – since we will only consider  yf,g non zero if there are some hits from genome g in fragment f.  ∑g ∈ G yf,g = 1
+
+The total likelihood is proportional to
+$$\left(\prod_{f \in F} \prod_{g \in G} P(f|g)^{y_{f,g}} \alpha_{g}^{y_{f,g}} \right) \ctimes P_{prior}(\alpha)$$
+
+Pprior(α) should be the conjugate prior distribution to categorical distribution, which is Dirichlet distribution.
+Expectation step goes over yf,g​ variables (with αg set)
+Maximization step goes over  αg  variables (with yf,g​  set).
+
+P(f|g) is given, it's probability of obtaining fragment f assuming it comes from genome g, it depends on 1/kmer_richness_of_g, and my proposal for it depends also on ef,g -- a minimal number of errors/mutations in fragment f, given the coverage of the read f with hits from g. In other words, what is the minimal number of errors in fragment f to provide that the covarage looks how it looks (i.e. how it was found by ithaka query).
+
+Computing ef,g turns out to be an instance of 0-1 integer programming -- an NP-complete problem. Thus, last week I programmed, using coin-Cbc integer programming library, a solution to this problem and in practice it works fast (it may work slower on seeds with many spaces, I am yet to test that).
+
+Open problems:
+1) what is the probability of one mutation_or_sequencing_error in a read? It may depend on sequencing technology. 
+2) what is the (approxmiate) k-mer richness of all organisms on Earth? How to estimate it? This one is needed to properly assign probability of assignment to unknown (unclassified read).
+
+Maybe you can help with these problems?
+
+Best regards,
+Maciek
+
+Hi Gregory,
+
+
+On Mon, Dec 7, 2015 at 7:20 PM, Gregory Kucherov <Gregory.Kucherov@univ-mlv.fr> wrote:
+Hi Maciek,
+Thanks for your mail.
+Overall this is very interesting but unfortunately I could not understand everything in your mail.
+It may well be that I am missing something (I am not a huge expert in EM).
+
+For example, I didn't understand the idea of the likelihood formula. Do you really want to multiply ${\alpha_g}$ as many times
+as there are reads coming from g? Sorry I may miss something... Could you give a few comments on your intuition about the formula?
+ 
+Yes, $\alpha_{g}^{y_{f,g}}$ in principle shows up for every f (read) and every genome (g), but most of  $y_{f,g} = 0$, precisely:
+*) For each f there exists only one g for which $y_{f,g} = 1$.  
+(This is the case when interpreting the likelihood for a given assignment of variables. However, during the expectation step $y_{f,g}$ accept intermediate values between 0-1, and the above condition is changed so that  $\sum_{g \in G}y_{f,g} = 1$. The task is to optimize with the best assignment of variables.).
+
+The interpretation is as such:
+*) vector $\alpha$ encodes categorical distribution among |G| categories (genomes),
+$\sum_{g\inG} \alpha_g =1$  and these are (sought) abundances of reads in the sample.
+*) The total likelihood of obtaining a set of reads from a sample, is the product of likelihoods of obtaining each read independently.
+The likelihood for obtaining one read is proportional to
+$$P(f|g)^1\alpha_g^1$$
+this means: to obtain given read from genome g you randomly select it from |G| categories with probability given by α and then certain events happen:
+the read is cut from somewhere in the genome g, 
+then sequencing errors happen.
+Finally, the probability of these events is $P(f|g)$.
+
+Since I don't know a priori which genomes which fragments come from, I multiply all possibilities with yf,g 0-1 variables as powers.
+
+
+The maximisation step looks like you simply compute the fractions αg from the information on the origin of each read, right?
+I.e. you don't really "maximise" anything. Is this what is intended?
+ 
+During the maximization step many yf,g accept values between 0-1 (after the Expectation step). I compute (sum) effective exponents for each αg.
+The maximized expression (over α) is:
+$$\text{const}*\prod_g \alpha_g^{e_g}$$
+
+
+ Maximization of this is the same as taking the mode of the appropriate Dirichlet distribution.
+
+
+Concerning the NP-complete problem you talk about, wouldn't some simple heuristic do the job in practice ?
+I don't know, maybe, but the problem looks complicated, when the spaced seed is complicated. These spaces start to overlap with each other, or not, when shifting the seed, and the logical reasoning behind where a gap can be, or has to be, becomes difficult.
+With the current approach processing HiSeq dataset (10000 reads) took approximately 10minutes with this seed: ######-###--#-##-#--##--#######
+
+
+Sorry for my possible lack of insight.
+
+Thank you for your input! 
+
+I still don't know what is the appropriate value for the probability of obtaining a sequencing error. I set it to 1/1000 for now, but this value must be published somewhere, at least for some sequencing technologies.
+
+Best regards,
+Maciek 
+
+
+Gregory
+
+PS we will discuss your mail with Karel and Kamil at our next meeting
+
+On 5 Dec 2015, at 17:39, Maciek Sykulski <macieksk@gmail.com> wrote:
+
+> Hi Gregory, Hi Karel, Hi Kamil,
+>
+> I think it will be easier to publish Ithaka paper, if it comes together with an assignment method. Thus, I've been thinking about it recently. Here are some results.
+>
+> Generally I think about an EM algorithm which would solve two problems at once: abundance estimation, and assignment. This EM would maximize likelihood as a function of two types of variables:
+> 1) abundances  αg  such that  ∑g ∈ G αg =1  correspond to proportion of reads from the whole sample which belong to genome g. Here G is the set of all genomes plus U - categories of unknown/unclassified reads.
+> 2) categorical assignment indicator 0-1 variables yf,g​ which if equal to 1 mean that fragment (read) f comes from genome(category) g. Matrix of these variables is sparse – most of them are 0 – since we will only consider  yf,g non zero if there are some hits from genome g in fragment f.  ∑g ∈ G yf,g = 1
+>
+> The total likelihood is proportional to
+>
+>
+> Pprior(α) should be the conjugate prior distribution to categorical distribution, which is Dirichlet distribution.
+> Expectation step goes over yf,g​ variables (with αg set)
+> Maximization step goes over  αg  variables (with yf,g​  set).
+>
+> P(f|g) is given, it's probability of obtaining fragment f assuming it comes from genome g, it depends on 1/kmerrichnessofg, and my proposal for it depends also on ef,g – a minimal number of errors/mutations in fragment f, given the coverage of the read f with hits from g. In other words, what is the minimal number of errors in fragment f to provide that the covarage looks how it looks (i.e. how it was found by ithaka query).
+>
+> Computing ef,g turns out to be an instance of 0-1 integer programming – an NP-complete problem. Thus, last week I programmed, using coin-Cbc integer programming library, a solution to this problem and in practice it works fast (it may work slower on seeds with many spaces, I am yet to test that).
+>
+> Open problems:
+> 1) what is the probability of one mutationorsequencingerror in a read? It may depend on sequencing technology.
+> 2) what is the (approxmiate) k-mer richness of all organisms on Earth? How to estimate it? This one is needed to properly assign probability of assignment to unknown (unclassified read).
+>
+> Maybe you can help with these problems?
+>
+> Best regards,
+> Maciek
+>
+>
+
+
+
+
+
+Concerning the NP-complete problem of computing number of errors from a coverage. 
+This is just one proposal of P(f|g). If you have other ideas how to assign P(f|g) given the coverage of a spaced seed, please let me know.
+Right now 
+
+$$ P(f|g) = \frac{1}{ \text{distinct kmers in g}} \, p_{err}^k (1-p_{err})^{\text{readlen}-k} $$
+where k is the minimal number of errors for a given coverage.
+
+An example coverage:
+HS:Z:11111111111111111111111111111111111111111110000001000110100101100110000
+
+Best regards,
+Maciek
+
+
+
