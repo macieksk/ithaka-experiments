@@ -298,9 +298,12 @@ defines the number k of matching nucleotides.
 In the above example k = 4, seed span = 6,
 and the matching (spaced) k-mer is ${\bf ACTC}$ signifying a {\bf hit}.
 
-A {\bf coverage} is a number of aligned pairs covered 
-by $\textbf{\#}$ from a spaced seed matches while sliding over an alignment 
-(=4 above).
+Previously, we demonstrated that spaced seeds allow for a better
+   classification of NGS reads coming from a genome $G$ between two
+  other genomes $G_1$ and $G_2$ of the same genus.\cite{sseed}
+% A {\bf coverage} is a number of aligned pairs covered 
+% by $\textbf{\#}$ from a spaced seed matches while sliding over an alignment 
+% (=4 above).
    \vspace{0.3em}
   }
 
@@ -381,6 +384,7 @@ by $\textbf{\#}$ from a spaced seed matches while sliding over an alignment
 %   }
 
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \headerbox{Scores on real genomes}{name=results,column=1,span=1,row=0}{
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -426,17 +430,20 @@ exhibit a better correlation between errors and score, while
 \vspace{0.3em}
 }
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{seed-Kraken}{name=speed,column=1,span=2,below=results,above=bottom}{ %,bottomaligned=background model}{
+\headerbox{Ithaka performance}{name=speed,column=1,span=2,below=results,above=bottom}{ %,bottomaligned=background model}{
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-We modified  {\sc
-    Kraken} software \cite{kraken} to make it work with
-  spaced seeds rather than with contiguous seeds only.
+% We modified  {\sc
+%     Kraken} software \cite{kraken} to make it work with
+%   spaced seeds rather than with contiguous seeds only.
 %Our implementation allows the user to specify a spaced seed as a parameter. 
-For a set of genomes, a database of spaced $k$-mers matching a user-selected seed is constructed. 
+% For a set of genomes, a database of spaced $k$-mers matching a user-selected seed is constructed. 
 %
-Performances of classification of {\sc seed-Kraken} (spaced seed modification), and original {\sc Kraken}, 
+\hspace{-1em}
+\begin{minipage}{0.47\textwidth}
+Performances of classification of {\sc Ithaka} (with spaced seeds), and original {\sc Kraken}, 
 were computed on simulated metagenomes (primarily described and used in \cite{kraken}):    
     MiSeq (10 bacterial genomes, average error rate), 
     HiSeq, %(10 bacterial genomes, low error rate), 
@@ -446,15 +453,20 @@ were computed on simulated metagenomes (primarily described and used in \cite{kr
 %\ \\
 %\vspace{0.3em}
 %
+{\sc seed-Kraken} outperforms original {\sc Kraken} in sensitivity/precision trade-off (ROC curve characteristics) at the classification levels of genus, and family.
+%
+
+\end{minipage} 
+\hspace{-2em}
+\begin{minipage}{0.6\textwidth}
 \centerline{
 \noindent\begin{tabular}{@{\hspace{0.0em}}c@{\hspace{0.0em}}}
 %\includegraphics[width=\linewidth,keepaspectratio]{images/seed-kraken_plt1_bioinfo-crop.pdf}\\
-\includegraphics[width=0.85\linewidth,keepaspectratio]{images/seed-kraken_plt1_bioinfo_type_HMPtongue_MiSeq_nospans-crop.pdf}\\
+\includegraphics[height=0.39\textheight,keepaspectratio]{images/ithaka_first_results_miseq_fixed.png}\\
 \end{tabular}
 }
+\end{minipage}
 
-{\sc seed-Kraken} outperforms original {\sc Kraken} in sensitivity/precision trade-off (ROC curve characteristics) at the classification levels of genus, and family.
-%
   \vspace{0.3em}
  }
 
@@ -557,4 +569,157 @@ where 'score' stands for either {\bf number of hits}, or {\bf coverage} of a giv
 \end{poster}
 
 \end{document}
+
+
+
+
+
+
+
+
+Ithaka tool chain
+
+Generally the Ithaka tool chain is:
+* ithaka-build.py - indexing fasta files, binarization, and creating 2outof3 index.
+I think most things are done there, and the process cannot be easily improved, and since this is a rare operation, there is no urgent need to. Building full Bacteria index + HMP database (90GB result, 20GB largest BF) takes approximately 36 hours on 24 cores. One problem here is that during indexing, sequences with gi numbers which do not map to taxonomic id's are simply omitted, and this happens hundreds of times or Bacteria db.
+
+* ithaka-query.py - querying the index. To be competitive still needs improvements described below, it's slow.
+
+* ithaka-assigment.py - these are 2 steps: first is 
+** samtoerr - computing error counts from coverage (NP-hard), and this is now slow for reads with low coverage (40min for >2mln alignments from 50K reads sample) This needs either rewriting to some greedy heuristic, some prefiltering, or both.
+** EM - expectation maximization. This is mostly done, it's blazing fast (1000 iterations of 50K reads (>2 million alignments) in <10 seconds). Here possible improvements are: heuristic computation of P(f|g) which takes hitcounts into account (first draft done), heuristic prior to \alpha_g which reduces assignments to genomes with very low representation (I experimented with this), better setup of parameters like seq_error_prob, earth_kmer_abundance. However, I have a following observations:
+-- whether error_probability coefficient is 0.01 or 0.001  doesn't seem to change the results much, if the earth_kmer_abundance coefficient is large enough.
+-- lowering the earth_kmer_abundance coefficient (i.e. increasing the probability of assigning a read as unknown) can increase precision, at the cost of sensitivity. (at the family level Ithaka reaches 0.994 precision with 0.78 sensitivity)
+
+-- Improvements to ithaka-query.py
+Currently it processes ~700 reads (of 220-250len) per second.
+This is slow, partially due to inefficient implementation which recomputes hashes from reads for every Bloom filter tested. According to below gprof-iler output, this could be relatively easily sped up by a factor of ~4x.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  us/call  us/call  name    
+ 47.37      0.27     0.27  1246416     0.22     0.22  compress_kmer
+ 24.56      0.41     0.14  1246416     0.11     0.43  Bloom::query
+ 19.30      0.52     0.11  9970024     0.01     0.01  MurmurHash3_x64_128
+  3.51      0.54     0.02  1246253     0.02     0.10  compute_hashes
+Further speed up is not possible without cache optimization because 25% of time is spend on querying Bloom filter bitmap, and this is simply the time to access memory (with cache misses, since the access is completely random).
+This could be sped up by sorting the all the queried bits numbers, and querying them in order. The trade off would be the sorting time (but this could be done once at the beginning for all reads), and then assembling the responses back into kmer queries, which would again meet with the problem of cache misses (if there are many reads/kmers). This could be mitigated using "cache blocking".
+
+The competition operates at the speeds of 20x to 80x faster than current Ithaka's 700rps. (see chart below from Kajiu paper) I suspect that cache optimization can give a speed up of a factor ~10x or more. The total speed up can be >40x, but it requires some serious programming work.
+
+​
+
+Ithaka experiment results​
+
+This is a bit quagmire. One reason is that gi number to taxonomic id mapping is changing (ftp://ftp.ncbi.nih.gov/pub/taxonomy/). It did change since May, or January. I spotted that one of the 10 MiSeq dataset bacterias: Enterobacter_cloacae_NCTC_9394_uid197202 was dropped in preprocessing because it's gi number was no longer in the database. 
+>gi|479270911|ref|NC_021046.1| Enterobacter cloacae subsp. cloacae NCTC 9394 draft genome
+The above gi|479270911 is no longer in database, and NCBI page reports different taxid: 295095013 .
+Missing bacteria in db skewed the sensitivity results much down in MiSeq. I'm now recomputing it, however the plot attached still has this problem.
+
+Another change is that a new version of Bacteria db cannot be downloaded with old scripts, because NCBI has reorganized its ftp site, and there is no longer one zipped file with all Bacteria but there are folders with different structures and various files:
+ftp://ftp.ncbi.nih.gov/genomes/refseq/bacteria/
+ftp://ftp.ncbi.nih.gov/genomes/archive/old_refseq/Bacteria/     (this is probably what we used)
+ftp://ftp.ncbi.nih.gov/genomes/genbank/bacteria/ 
+
+Another aspect is that results computed with full Bacteria db + HMP are not comparable with our results from seed-Kraken build on half-Bacteria db, because there are many more similar genomes in full Bacteria db and this drags sensitivity and precision down.
+
+Anyway, attached is a plot of some results from Ithaka on the same database as seed-Kraken was tested.
+* Results are for contig l=31 seed and spaced seed l31-w22
+* There are two versions for each result: black -- only genomes were fed to EM, blue -- also inner nodes were fed to EM (this gives better precision at cost of sensitivity)
+* HiSeq results are very good, better precision and/or sensitivity than seed-Kraken on all levels.
+* MiSeq contig seed still have the problem of missing bacteria, thus disregard its low sensitivity. But the correct Miseq-l31-w22 are good only at the family  level, otherwise not too good, decent sensitivity, poor precision.
+* HMP results are not too good.  In HMP there is one strain of bacteria which is very common: Streptococcus salivarius SK126, ~ 0.135738 abundace, and >500 (~1%) of cases which are similar to Streptococcus are assigned to it (this is how EM works, if coverages are similar it assigns to more abundant strain). Maybe HMP has also some missing bacterias? Precision is low, because there are many assignments which were no assignment at all in seed-Kraken -- some possibly come from spurious false-positives.
+
+As I mentioned before, I also computed results for full Bacteria db, but I have no other experiments of full db to compare with. 
+Another issue is that in this recent paper from Lior Pachter group about kallisto they advertise using different measures: AVGRE (Average Relative Error), and RRMSE (Relative Root Mean Square Error). In this paper they report kallisto sensitivity/precision above 0.997/0.997 which is almost unbelievable.
+
+Summarizing: I was hoping to quickly wrap up Ithaka tool chain, and it's results but it doesn't look like it's going to be quick. Gregory, how do you think we should proceed? Are you going to pursue Ithaka development? Ithaka experiments?
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+Hi Gregory, Hi Karel,
+
+On Thu, Dec 17, 2015 at 8:18 PM, Gregory Kucherov <Gregory.Kucherov@univ-mlv.fr> wrote:
+Maciek,
+Let me try to write some considerations about what we should do with Ithaka (that I also discussed with Karel).
+I completely support the idea that the goal should be to make an intermediate publication on what you have done.
+The whole question is what to put forward in this publication.
+
+What results can we claim?
+
+INDEX:
+My understanding is that your index was smaller than the one of Kraken. Does this still hold?
+Can we claim the index to be the main innovation?
+BTW, since the NCBI nomenclature changed, does this mean that Kraken database should be re-built to compare with?
+According to Kraken manual "the default (bacteria) database size is 75 GB (as of Feb. 2015)", and there are people struggling with the fact that to run Kraken a 100GB of RAM is needed". Kraken database contains the complete genomes in RefSeq for the bacterial, archaeal, and viral domains. Ithaka database is comparable in size (67GB for bacterial and archaeal), but 
+* it requires 24 GB to be build (although it builds much faster when more is available) -- compare it to Kraken which requires 120GB to build the db
+* it requires <24 GB to run
+* it contains complete information about k-mers, not only LCAs
+
+The fact that NCBI set of bacteria genomes is changing suggest that rebuilding would be good, but I don't have an access to machine with 120GB of ram.
+
+
+EM ASSIGNMENT ALGORITHM:
+I still have not figured out what is the novelty of it and whether we can claim it as a novel result.
+Let us clarify this.
+I tracked down the abundances (~\alpha), and indicator variables (~y_{f,g}) (slightly more complicated) to be found in this paper 2010 "RNA-Seq gene expression estimation with read mapping uncertainty" , however, their log likelihood function is a product of sums (unlike our EM product of products), which is slightly more difficult to optimize. Their algorithm is tailored to alignments, ex. it estimates a position-specific substitution matrix, hence it's different from ours, which is tailored for spaced_seeds coverages, and this is exactly what can be claimed novel in our approach. Hence, the novel part would be estimating error counts from coverages, and using then in computation of P(f|g). Previous RNA-seq papers complicate computations of P(f|g) with many aspects such as effective length, substitution matrix, strands, etc, while I simply proposed a simple P(f|g) which makes sense for k-mer/spaced_seeds counts.
+
+Maybe we should incorporate "effective length" to our approach, but I don't understand it, it was I think introduced in this 2010 paper, and maybe it's specific to isoforms.
+
+ 
+
+FINAL PLOTS:
+They do not look very convincing, right? but not bad either.
+So they can be provided if we show that we obtain them e.g. with a smaller index.
+We only compare against Kraken and seed-Kraken, maybe we should compare against kallisto for example, as our assignment EM abundace estimation approach is more like theirs?
+ 
+
+It seems clear that we cannot claim a good running time, so we should claim some other improvements.
+Query time:
+** Here Ithaka is 20x-80x times slower than Kraken, but this can be improved by reprogramming ulysses query_and_split with the use of bit sorting, cache blocking, and shared memory. Some work required.
+  
+
+Concerning Kallisto: I still don't understand their measurements. Can you e.g. take a look at their code and maybe
+clarify this? https://github.com/pachterlab/metakallisto/blob/master/compare_metagenomic_results_to_truth.py
+Their computation is different than ours, because they compute it from counts in rank categories, not by iterating over every single read. And they "normalize"! their counts up, so they are on the same level as total counts:
+ normalization_factor = sum(truth.counts)/sum(est.counts) # total counts/counts assigned
+norm_est.counts = [c*normalization_factor for c in est.counts]
+I think this normalization boosts their results up, as they kind of forget with it exactly how many fragments didn't give good answers (and these drags down sensitivity in our case). They do the same normalization for AVGRE, RRMSE (it's included in their respective formulas).
+
+The Figure 1 illuminates how their data looks like, after normalization I supppose.
+
+Their dataset (the Illumina100 simulation (i100) but utilizing a larger and more realistic reference database of 1,958 genomes from [Martin et al., 2012].) looks interesting, and maybe we should test our experiments on it. How to find it?
+
+
+Concerning our plans: As you know, we are now working on an alternative index, based on FM-index, in hope to obtain a much smaller index.
+If this works, we may still use your EM assignment algorithm, however.
+EM with samtoerr (error counts estimation) is especially tailored for k-mer/spaced_seeds coverages. Is your query result going to report coverages, or alignments? If alignments, then the previous RNA-seq approaches seems more appropriate.
+
+But I need to look more closely at it and to figure out better how it is related to
+previous works and what are pros and cons of using it. Currently I don't have a good view of this. Experiments will be needed here.
+Yes, I agree that more experiments are needed to test only EM. It has at least 3 parameters which change how it works.  
+
+My feeling is that computing error counts from coverage is not an obstacle.
+Computing error counts is now done by ending short the integer programming solution after 0.01s, and rounding the solution from the relaxed linear programming solution. This may be important as error counts are the most important input to EM, and a difference of 1 in error count changes the final result.
+Also, there are many very low coverages (1,2 hits) in resulting dataset. We could filter them out, but providing that if all coverages for a given read are low, we do not remove them (a bit problematic).
+
+
+This is the current overview. The main point is that it will probably be very difficult to "sell" your work as a new software outperforming
+Kraken/kallisto/..., so the message should be that we are better in certain aspects, and we have to identify those.
+Currently there are many ingredients: spaced seeds, Bloom filters, 2-ou-of-3 index, EM algorithm.
+Since we cannot claim that the combination of all of them produced a better program, we should clearly say in which
+aspects we are better. (like e.g. kallisto that claimed that they are better in classification at the strain level)
+
+* 2outof3 index is slightly smaller than Kraken's and has much lower memory requirements to be run. 
+* main advantage of 2outof3 index is that it produces coverages for all the genomes in database, and maybe this can be helpful in some other tasks than assignment, or abundance estimation. Maybe some genetic inheritance studies? Horizontal transfer studies?
+* spaced seeds are definitely an advantage over only contig. k-mer methods as Kraken -- they improve sensitivity. This can be seen in HiSeq, and MiSeq dataset.
+* Maybe EM algorithm can provide better abundance estimation, than simple assignment, and we should use metrics (AVGRE?, RRMSE?) to show that. HiSeq results already confirm that, maybe results with other databases can confirm that too. However, HMPtongue results show that the EM approach doesn't help, I need to test how these results look with EM turned off, maybe it's just a problem of Ithaka returning to many spurious hits.
+
+Summarizing, there are some definite advantages in Ithaka, and there are several novel approaches in Ithaka (2outof3 index, bloom filters for spaced seeds, EM for spaced_seeds coverages). However:
+* more experiment results are needed to show in which parts it's better
+* to be competitive more programming is needed, and more parameter tuning with experimentation
+
+Best regards,
+Maciek
+
+
 
