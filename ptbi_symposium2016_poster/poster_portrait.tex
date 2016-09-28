@@ -302,9 +302,9 @@ Menzel,~P, Ng~Kim~Lee, Krogh~A
 % In the above example k = 4, seed span = 6,
 % and the matching (spaced) k-mer is ${\bf ACTC}$ signifying a {\bf hit}.
 
-Previously, we demonstrated that spaced seeds allow for a better
+Previously\cite{sseed} we demonstrated that spaced seeds allow for a better
    classification of NGS reads coming from a genome $G$ between two
-  other genomes $G_1$ and $G_2$ of the same genus.\cite{sseed}
+  other genomes $G_1$ and $G_2$ of the same genus.
 \\  
  {\bf Coverage} is a number of aligned pairs covered 
  by $\textbf{\#}$ from a spaced seed matches while sliding over an alignment 
@@ -313,7 +313,7 @@ Previously, we demonstrated that spaced seeds allow for a better
 {\bf Coverage pattern} is the pattern of matches (hits) of a seed over an alignment.
 \\
 {\bf The NP-HARD PROBLEM:}  Assume a read $f$ comes from genome $g$.
-For a given seed, computing $e_{f,g}$ -- a minimal number of errors(mutations) in fragment $f$, given the {\em coverage pattern} of the read $f$ with hits to $g$ is NP-hard. In other words, answering what is the minimal number of errors in a fragment $f$ which guarantees a certain coverage pattern (eg. found by Ithaka query) turns out to be an instance of 0-1 integer programming (an NP-complete problem). We programmed our solution using {\em coin-Cbc} integer programming library. In practice, it works fast on reads with high coverage, and slows down significantly on reads with low coverage (then heuristic is preferred).
+For a given seed, computing $e_{f,g}$ -- a minimal number of errors(mutations) in fragment $f$, given the {\em coverage pattern} of the read $f$ with hits to $g$ is NP-hard. In other words, answering what is the minimal number of errors in a fragment $f$ which guarantees a certain coverage pattern (eg. found by Ithaka query) turns out to be an {\bf instance of 0-1 integer programming} (an NP-complete problem). We programmed our solution using {\em coin-Cbc} integer programming library. In practice, it works fast on reads with high coverage, and slows down significantly on reads with low coverage (then heuristic is preferred).
    \vspace{0.3em}
   }
 
@@ -398,16 +398,36 @@ For a given seed, computing $e_{f,g}$ -- a minimal number of errors(mutations) i
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \headerbox{2outof3 Index}{name=results,column=1,span=1,row=0}{
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Consider a binary tree with a 
-  
-  
-{\bf Ithaka 2outof3 index} is comparable in size to Krakens: 67GB for bacterial and archaeal, but
+At each node of a {\bf binary tree} we store {\sc 2 smaller of of 3 possible}
+$p_{\text{error}}$--{\em optimal in size} {\bf Bloom filters}: 
+\textcolor{green}{only Left subtree elements}, 
+\textcolor{red}{{\mbox Intersection} elements}, 
+\textcolor{blue}{only Right subtree elems.}.
+
+\vspace{0em}
+\hspace{-1em}
+\begin{minipage}{0.65\textwidth}
+\centerline{
+\noindent\begin{tabular}{@{\hspace{0.0em}}c@{\hspace{0.0em}}}
+\includegraphics[height=0.25\textheight,keepaspectratio]{images/Ithaka_node_query_scheme_for_2outof3_tree_index.pdf}
+\end{tabular}
+}
+\end{minipage} 
+\hspace{-2em}
+\begin{minipage}{0.35\textwidth}
+\ \\ 
+\ \\ \ \\ \ \\ \ \\ \ \\ \ \\
+Downstream processing of reads at each node of the binary 2outof3 index tree. Two distinct cases, when either Left\&Intersection or Left\&Right Bloom filters are present. It's possible to shrink index >2x.
+\end{minipage} 
+\vspace{0em}
+
+{\sc Ithaka} {\bf 2outof3 index} is comparable in size to {\sc Kraken}: 67GB for bacterial and archaeal, but
 \vspace{-0.7em}
 \begin{itemize}[leftmargin=*]
 \setlength\itemsep{-0.2em}
 \item it requires 24 GB to be build (although it builds much faster when more is available) (Kraken requires 120GB to build the db)
-\item it requires <24 GB to run
-\item it contains complete taxonomic information about k-mers, not only LCAs  
+\item it requires <24 GB to run ({\bf !!} {\sc Kraken} req.75GB)
+\item it contains complete taxonomic information about k-mers (or seeds!), not only LCAs  
 \end{itemize}
 % We generated a set of {\sc Illumina}-like single-end reads:
 % we've selected random substrings of 
@@ -447,7 +467,7 @@ Consider a binary tree with a
 % %       The eye of the running giraffe required eight user interactions, of which three
 % %       marked occlusions. 
 %        \end{multicols}
-\vspace{0.3em}
+\vspace{-1em}
 }
 
 
@@ -495,7 +515,7 @@ In development implementation (partially in C++) is still slow: ~700 reads (of 2
 %  24.56      0.41     0.14  1246416     0.11     0.43  Bloom::query
 %  19.30      0.52     0.11  9970024     0.01     0.01  MurmurHash3_x64_128
 %   3.51      0.54     0.02  1246253     0.02     0.10  compute_hashes
-Further speed up is not possible without cache optimization because 25\% of time is spend on querying Bloom filter bitmap: it's the time to access memory with cache misses, the access is random. Effective implementation using {\em "cache blocking"} is possible (10x, total 40x speedup).
+Further speed up is not possible without cache optimization because 25\% of time is spend on querying Bloom filter bitmap: it's the time to access memory randomly with cache misses. Effective implementation using {\em "cache blocking"} is possible (10x, total 40x speedup).
 % 
 % This could be sped up by sorting the all the queried bits numbers, and querying them in order. The trade off would be the sorting time (but this could be done once at the beginning for all reads), and then assembling the responses back into kmer queries, which would again meet with the problem of cache misses (if there are many reads/kmers). This could be mitigated using "cache blocking".
 % 
@@ -539,23 +559,23 @@ EM maximizes likelihood as a function of two types of variables:
 \begin{enumerate}[leftmargin=*]
 \setlength\itemsep{-0.2em}
 \item abundances  $\alpha_g$  such that  $\sum_{g\in G} \alpha_g =1$  correspond to proportion of reads from the whole sample which belong to genome $g$. Here $G$ is the set of all genomes plus $U$ category of unknown/unclassified reads.
-\item categorical assignment indicator 0-1 variables $y_{f,g}$​ which if equal to 1 mean that read $f$ comes from a genome(or category) $g$. Matrix of these variables is sparse – most of them are 0 – since we only consider  $y_{f,g}$ non zero if there are some hits from genome $g$ in fragment $f$.  
+\item categorical assignment indicator 0-1 variables $y_{f,g}$, which if equal to 1 mean that read $f$ comes from a genome(or category) $g$. Matrix of these variables is sparse -- most of them are 0 -- since we only consider  $y_{f,g}$ non zero if there are some hits from genome $g$ in fragment $f$.  
 $\sum_{g \in G} y_{f,g} = 1$
 \end{enumerate}
 \vspace{-0.5em}
 The {\bf total likelihood} is proportional to
 \vspace{-0.5em}
 %\begin{align}
-$$\left(\prod_{f \in F} \prod_{g \in G} P(f\|g)^{y_{f,g}} \alpha_{g}^{y_{f,g}} \right) \times P_{prior}(\alpha)$$
+$$\left(\prod_{f \in F} \prod_{g \in G} P(f|g)^{y_{f,g}} \alpha_{g}^{y_{f,g}} \right) \times P_{prior}(\alpha)$$
 %\end{align}
 %\vspace{-0.5em}
 $P_{prior}(\alpha)$ is the conjugate prior distribution to categorical distribution, which is Dirichlet distribution.\\
-{\bf Expectation step} goes over $y_{f,g}$​ variables (with $\alpha_g$ set)\\
-{\bf Maximization step} goes over  $\alpha_g$  variables (with $y_{f,g}$​ set).
+{\bf Expectation step} goes over $y_{f,g}$ variables ( $\alpha_g$ set)\\
+{\bf Maximization step} goes over  $\alpha_g$  variables \\( $y_{f,g}$ set).
 
-$P(f\|g)$ is given, it's probability of obtaining fragment $f$ assuming it comes from genome $g$, it depends on 
-$\frac{1}{\text{kmer\_richness\_of\_g}}$.
-One proposal for it depends also on $e_{f,g}$ -- a minimal number of errors/mutations in fragment $f$, given the coverage pattern (see NP-HARD, left panel).
+$P(f|g)$ is given, it's probability of obtaining fragment $f$ assuming it comes from genome $g$, it depends on 
+$\frac{1}{\text{kmer\_richness\_of\_g}}$. Our proposal for it depends also on $e_{f,g}$ -- a minimal number of errors/mutations in fragment $f$, given the coverage pattern (eg. {\scalefont{0.8}1111111111100100011010010110011000}, see NP-HARD, left panel).\\
+
 
 % An accurate mapping of a read to a corresponding clade
 % requires estimating its distances to each of the genomes.
