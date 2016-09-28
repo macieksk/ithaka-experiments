@@ -495,7 +495,7 @@ Downstream processing of reads at each node of the binary 2outof3 index tree. Tw
 \vspace{-1em}
 \begin{itemize}[leftmargin=0.5em]
 \setlength\itemsep{-0.2em}
-\item samtoerr -- computing error counts from coverage (NP-hard), 
+\item samtoerr -- computing error counts from coverage (NP-hard, {\em coin-Cbc} lib.), 
 % and this is now slow for reads with low coverage (40min for >2mln alignments from 50K reads sample) This needs either rewriting to some greedy heuristic, some prefiltering, or both.
 \item Expectation Maximization(EM) -- taxonomic abundance estimation, and read assignment (blazing fast: 1000 iterations of 50K reads (>2 million alignments) in <10 seconds)
 \end{itemize}
@@ -515,7 +515,7 @@ In development implementation (partially in C++) is still slow: ~700 reads (of 2
 %  24.56      0.41     0.14  1246416     0.11     0.43  Bloom::query
 %  19.30      0.52     0.11  9970024     0.01     0.01  MurmurHash3_x64_128
 %   3.51      0.54     0.02  1246253     0.02     0.10  compute_hashes
-Further speed up is not possible without cache optimization because 25\% of time is spend on querying Bloom filter bitmap: it's the time to access memory randomly with cache misses. Effective implementation using {\em "cache blocking"} is possible (10x, total 40x speedup).
+Further speed up is not possible without cache optimization because 25\% of time is spent on querying Bloom filter bitmap: it's the time to access memory randomly with cache misses. Effective implementation using {\em "cache blocking"} is possible (10x, total 40x speedup).
 % 
 % This could be sped up by sorting the all the queried bits numbers, and querying them in order. The trade off would be the sorting time (but this could be done once at the beginning for all reads), and then assembling the responses back into kmer queries, which would again meet with the problem of cache misses (if there are many reads/kmers). This could be mitigated using "cache blocking".
 % 
@@ -524,9 +524,9 @@ Further speed up is not possible without cache optimization because 25\% of time
 
 {\bf Performances} of classification of {\sc seed-Kraken}\cite{sseed} and {\sc Ithaka} (with spaced seeds), and original {\sc Kraken}, 
 were computed on simulated metagenomes (primarily used in \cite{kraken}):    
-    MiSeq (10 bacterial genomes, average error rate), 
-    Charted are genus precision (positive predictive value) against genus sensitivity (rate of correct assignments). Varying are {\em k-mer length}, and its spaced seed equivalent {\em seed weight}, while the {\em seed span} (not indicated) varies from 31 to 40.
-Ithaka marks {\em black}: only leaves(genomes) fed to EM; {\em blue}: also inner nodes fed to EM (precision at cost of sensitivity).
+    HiSeq, MiSeq, and our HMP set HMPtongue.\\
+    {\bf Charted are} rank precision (positive predictive value) against rank sensitivity (rate of correct assignments). Varying are {\em k-mer length}, and its spaced seed equivalent {\em seed weight}, while the {\em seed span} (in circles) varies from 31 to 40.
+{\bf Ithaka marks} {\em black}: only leaves(genomes) fed to EM; {\em blue}: also inner nodes fed to EM (precision at the cost of sensitivity).
     
 %\ \\
 %\vspace{0.3em}
@@ -562,14 +562,14 @@ EM maximizes likelihood as a function of two types of variables:
 \item categorical assignment indicator 0-1 variables $y_{f,g}$, which if equal to 1 mean that read $f$ comes from a genome(or category) $g$. Matrix of these variables is sparse -- most of them are 0 -- since we only consider  $y_{f,g}$ non zero if there are some hits from genome $g$ in fragment $f$.  
 $\sum_{g \in G} y_{f,g} = 1$
 \end{enumerate}
-\vspace{-0.5em}
+%\vspace{-0.5em}
 The {\bf total likelihood} is proportional to
 \vspace{-0.5em}
 %\begin{align}
 $$\left(\prod_{f \in F} \prod_{g \in G} P(f|g)^{y_{f,g}} \alpha_{g}^{y_{f,g}} \right) \times P_{prior}(\alpha)$$
 %\end{align}
 %\vspace{-0.5em}
-$P_{prior}(\alpha)$ is the conjugate prior distribution to categorical distribution, which is Dirichlet distribution.\\
+$P_{prior}(\alpha)$ is the conjugate prior distribution to categorical distribution: the Dirichlet distribution.\\
 {\bf Expectation step} goes over $y_{f,g}$ variables ( $\alpha_g$ set)\\
 {\bf Maximization step} goes over  $\alpha_g$  variables \\( $y_{f,g}$ set).
 
