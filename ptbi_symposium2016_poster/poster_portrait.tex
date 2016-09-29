@@ -277,7 +277,9 @@ Menzel,~P, Ng~Kim~Lee, Krogh~A
   %\hfill\includegraphics[width=\linewidth]{images/qr-seed-kraken-rea-crop.pdf}
   \hfill\includegraphics[width=\linewidth]{images/qrcode-ithaka.png}
   \end{minipage}
+  %\vspace{2em}
   \end{minipage}
+  Financed from Polish NCN grant 2014/13/B/NZ2/01248.
    \vspace{0.3em}
   }
 
@@ -314,7 +316,7 @@ Previously\cite{sseed} we demonstrated that spaced seeds allow for a better
 \\
 {\bf The NP-HARD PROBLEM:}  Assume a read $f$ comes from genome $g$.
 For a given seed, computing $e_{f,g}$ -- a minimal number of errors(mutations) in fragment $f$, given the {\em coverage pattern} of the read $f$ with hits to $g$ is NP-hard. In other words, answering what is the minimal number of errors in a fragment $f$ which guarantees a certain coverage pattern (eg. found by Ithaka query) turns out to be an {\bf instance of 0-1 integer programming} (an NP-complete problem). We programmed our solution using {\em coin-Cbc} integer programming library. In practice, it works fast on reads with high coverage, and slows down significantly on reads with low coverage (then heuristic is preferred).
-   \vspace{0.3em}
+   \vspace{0.15em}
   }
 
 % 
@@ -562,7 +564,7 @@ EM maximizes likelihood as a function of two types of variables:
 \item categorical assignment indicator 0-1 variables $y_{f,g}$, which if equal to 1 mean that read $f$ comes from a genome(or category) $g$. Matrix of these variables is sparse -- most of them are 0 -- since we only consider  $y_{f,g}$ non zero if there are some hits from genome $g$ in fragment $f$.  
 $\sum_{g \in G} y_{f,g} = 1$
 \end{enumerate}
-%\vspace{-0.5em}
+%   \vspace{-0.5em}
 The {\bf total likelihood} is proportional to
 \vspace{-0.5em}
 %\begin{align}
